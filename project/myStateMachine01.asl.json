@@ -1,0 +1,31 @@
+{
+  "Comment": "Scones Unlimited Workflow",
+  "StartAt": "ExtractImageData",
+  "States": {
+    "ExtractImageData": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:831926625546:function:SerializeImageData",
+      "ResultPath": "$.image_data_result",
+      "Next": "Predict"
+    },
+    "Predict": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:831926625546:function:classifierLambda",
+      "Parameters": {
+        "image_data.$": "$.image_data_result.body.image_data",
+        "s3_bucket.$": "$.s3_bucket",
+        "s3_key.$": "$.s3_key"
+      },
+      "ResultPath": "$.predict_result",
+      "Next": "CheckConfidence"
+    },
+    "CheckConfidence": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:831926625546:function:filterLambda",
+      "Parameters": {
+        "inferences.$": "$.predict_result.inferences"
+      },
+      "End": true
+    }
+  }
+}
